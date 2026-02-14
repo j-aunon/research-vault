@@ -64,6 +64,29 @@ docker compose up -d
 
 After next reboot, containers will come back automatically.
 
+## Quick Local Scripts
+To run the non-Docker dev stack with one command:
+
+```bash
+./scripts/start-dev.sh
+```
+
+Stop:
+
+```bash
+./scripts/stop-dev.sh
+```
+
+Status:
+
+```bash
+./scripts/status-dev.sh
+```
+
+Logs are written to:
+- `.run/backend.log`
+- `.run/frontend.log`
+
 ## Environment Variables
 ### Backend (`backend/.env`)
 - `NODE_ENV`
