@@ -26,6 +26,44 @@ Full-stack research resource manager for papers, books, and websites with projec
    - Backend: `cd backend && npm run dev` (port `4000`)
    - Frontend: `cd frontend && npm run dev` (port `5173`)
 
+## Docker Setup
+Run full stack (Postgres + backend + frontend) with one command:
+
+```bash
+docker compose up -d --build
+```
+
+App URL:
+- `http://localhost:8080`
+
+Useful commands:
+- Stop: `docker compose down`
+- Stop + remove DB volume: `docker compose down -v`
+- Logs: `docker compose logs -f`
+
+Notes:
+- Backend runs `prisma migrate deploy` automatically on startup.
+- Frontend is served by Nginx and proxies `/api` to backend internally.
+- Uploaded PDFs are persisted in Docker volume `backend_uploads`.
+
+## Auto-start On Boot
+If Docker daemon is enabled on boot, this stack can auto-start because services use `restart: unless-stopped`.
+
+Enable Docker on boot (Linux):
+
+```bash
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+
+Then start stack once:
+
+```bash
+docker compose up -d
+```
+
+After next reboot, containers will come back automatically.
+
 ## Environment Variables
 ### Backend (`backend/.env`)
 - `NODE_ENV`
