@@ -1,0 +1,4 @@
+ALTER TABLE "resources"
+  ADD COLUMN IF NOT EXISTS "file_path" TEXT,
+  ADD COLUMN IF NOT EXISTS "file_name" TEXT,
+  ADD COLUMN IF NOT EXISTS "file_mime" VARCHAR(100);

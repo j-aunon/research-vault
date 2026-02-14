@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ResourceType {
+  paper
+  book
+  website
+}
+
+model User {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String     @unique @db.VarChar(255)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  name         String?    @db.VarChar(255)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  projects     Project[]
+  resources    Resource[]
+  tags         Tag[]
+
+  @@map("users")
+}
+
+model Project {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  name      String     @db.VarChar(255)
+  color     String     @default("bg-blue-500") @db.VarChar(50)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folders   Folder[]
+  resources Resource[]
+
+  @@map("projects")
+}
+
+model Folder {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  name      String     @db.VarChar(255)
+  color     String     @default("bg-purple-500") @db.VarChar(50)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  resources Resource[]
+
+  @@map("folders")
+}
+
+model Resource {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  projectId String         @map("project_id") @db.Uuid
+  folderId  String?        @map("folder_id") @db.Uuid
+  title     String         @db.VarChar(500)
+  type      ResourceType
+  url       String?
+  filePath  String?        @map("file_path")
+  fileName  String?        @map("file_name")
+  fileMime  String?        @map("file_mime") @db.VarChar(100)
+  notes     String?
+  starred   Boolean        @default(false)
+  addedDate DateTime       @default(now()) @map("added_date")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  folder    Folder?        @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  resourceTags ResourceTag[]
+
+  @@index([projectId], map: "idx_resources_project")
+  @@index([folderId], map: "idx_resources_folder")
+  @@index([type], map: "idx_resources_type")
+  @@index([starred], map: "idx_resources_starred")
+  @@map("resources")
+}
+
+model Tag {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String       @map("user_id") @db.Uuid
+  name      String       @db.VarChar(100)
+  createdAt DateTime     @default(now()) @map("created_at")
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resourceTags ResourceTag[]
+
+  @@unique([userId, name])
+  @@index([userId], map: "idx_tags_user")
+  @@map("tags")
+}
+
+model ResourceTag {
+  resourceId String   @map("resource_id") @db.Uuid
+  tagId      String   @map("tag_id") @db.Uuid
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, tagId])
+  @@index([resourceId], map: "idx_resource_tags_resource")
+  @@index([tagId], map: "idx_resource_tags_tag")
+  @@map("resource_tags")
+}
