@@ -5,6 +5,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN_DIR="$ROOT_DIR/.run"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
+FRONTEND_BIND_HOST="0.0.0.0"
+FRONTEND_PUBLIC_HOST="192.168.1.73"
+FRONTEND_PORT="5173"
+BACKEND_PORT="4000"
+DEFAULT_FRONTEND_ORIGIN="http://127.0.0.1:${FRONTEND_PORT},http://localhost:${FRONTEND_PORT},http://${FRONTEND_PUBLIC_HOST}:${FRONTEND_PORT}"
 
 BACKEND_PID_FILE="$RUN_DIR/backend.pid"
 FRONTEND_PID_FILE="$RUN_DIR/frontend.pid"
@@ -34,14 +39,14 @@ start_backend() {
     rm -f "$BACKEND_PID_FILE"
   fi
 
-  if is_port_listening 4000; then
-    echo "Port 4000 is already in use. Skipping backend start."
+  if is_port_listening "$BACKEND_PORT"; then
+    echo "Port ${BACKEND_PORT} is already in use. Skipping backend start."
     return
   fi
 
   (
     cd "$BACKEND_DIR"
-    nohup npm run dev >"$BACKEND_LOG" 2>&1 &
+    FRONTEND_ORIGIN="${FRONTEND_ORIGIN:-$DEFAULT_FRONTEND_ORIGIN}" nohup npm run dev >"$BACKEND_LOG" 2>&1 &
     echo $! >"$BACKEND_PID_FILE"
   )
 
@@ -59,14 +64,14 @@ start_frontend() {
     rm -f "$FRONTEND_PID_FILE"
   fi
 
-  if is_port_listening 5173; then
-    echo "Port 5173 is already in use. Skipping frontend start."
+  if is_port_listening "$FRONTEND_PORT"; then
+    echo "Port ${FRONTEND_PORT} is already in use. Skipping frontend start."
     return
   fi
 
   (
     cd "$FRONTEND_DIR"
-    nohup npm run dev -- --host 127.0.0.1 --port 5173 >"$FRONTEND_LOG" 2>&1 &
+    nohup npm run dev -- --host "$FRONTEND_BIND_HOST" --port "$FRONTEND_PORT" >"$FRONTEND_LOG" 2>&1 &
     echo $! >"$FRONTEND_PID_FILE"
   )
 
@@ -77,11 +82,11 @@ start_backend
 start_frontend
 
 echo
-if is_port_listening 4000; then
-  echo "Backend URL:  http://127.0.0.1:4000"
+if is_port_listening "$BACKEND_PORT"; then
+  echo "Backend URL:  http://127.0.0.1:${BACKEND_PORT}"
 fi
-if is_port_listening 5173; then
-  echo "Frontend URL: http://127.0.0.1:5173"
+if is_port_listening "$FRONTEND_PORT"; then
+  echo "Frontend URL: http://${FRONTEND_PUBLIC_HOST}:${FRONTEND_PORT}"
 fi
 
 echo "Logs:"

@@ -40,7 +40,7 @@ case "$cmd" in
     esac
     ;;
   open)
-    echo "Frontend: http://127.0.0.1:5173"
+    echo "Frontend: http://192.168.1.73:5173"
     echo "Backend:  http://127.0.0.1:4000"
     ;;
   help|-h|--help)
