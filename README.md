@@ -29,6 +29,16 @@ Full-stack research resource manager for papers, books, and websites with projec
 ## Docker Setup
 Run full stack (Postgres + backend + frontend) with one command:
 
+1. Copy compose env template:
+
+```bash
+cp .env.example .env
+```
+
+2. Edit `.env` and set strong values for:
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET`
+
 ```bash
 docker compose up -d --build
 ```
