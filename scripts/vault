@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SELF_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+ROOT_DIR="$(cd "$(dirname "$SELF_PATH")/.." && pwd)"
+RUN_DIR="$ROOT_DIR/.run"
+
+cmd="${1:-up}"
+
+case "$cmd" in
+  up|start)
+    "$ROOT_DIR/scripts/start-dev.sh"
+    ;;
+  down|stop)
+    "$ROOT_DIR/scripts/stop-dev.sh"
+    ;;
+  restart)
+    "$ROOT_DIR/scripts/stop-dev.sh"
+    "$ROOT_DIR/scripts/start-dev.sh"
+    ;;
+  status)
+    "$ROOT_DIR/scripts/status-dev.sh"
+    ;;
+  logs)
+    target="${2:-all}"
+    case "$target" in
+      backend)
+        tail -f "$RUN_DIR/backend.log"
+        ;;
+      frontend)
+        tail -f "$RUN_DIR/frontend.log"
+        ;;
+      all)
+        tail -f "$RUN_DIR/backend.log" "$RUN_DIR/frontend.log"
+        ;;
+      *)
+        echo "Usage: vault logs [backend|frontend|all]"
+        exit 1
+        ;;
+    esac
+    ;;
+  open)
+    echo "Frontend: ${FRONTEND_URL:-http://127.0.0.1:5173}"
+    echo "Backend:  ${BACKEND_URL:-http://127.0.0.1:4000}"
+    ;;
+  help|-h|--help)
+    cat <<'EOF'
+Usage: vault [command]
+
+Commands:
+  up|start          Start backend + frontend in background
+  down|stop         Stop backend + frontend
+  restart           Restart both
+  status            Show process/port status
+  logs [target]     Tail logs (backend|frontend|all)
+  open              Print app URLs
+  help              Show this help
+
+Default command: up
+EOF
+    ;;
+  *)
+    echo "Unknown command: $cmd"
+    echo "Run: vault help"
+    exit 1
+    ;;
+esac
